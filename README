@@ -1,0 +1,31 @@
+2 PHP Classes for working with and managing GNIP's Power Track solution.
+
+*** GnipPowerTrack_ManageRules ***
+For managing the Gnip Rules. After including the file containing the class, start the calls with:
+$gptr = new GnipPowerTrack_ManageRules('YOUR_GNIP_USERNAME', 'YOUR_GNIP_PASSWORD');
+
+USAGE:
+
+* Adding Rules
+(bool) = $gptr->add(array(array('value'=>'item', 'Search'))))
+
+* Deleting Rules
+(bool) = $gptr->delete(array(array('value'=>'item'))))
+
+
+*** GnipPowerTrack_Consume ***
+For consuming tweets from Power Track.  After including the file containing the class (and modifying it for your Gnip account), start it with:
+
+$gptc = new GnipPowerTrack_Consume('YOUR_GNIP_USERNAME', 'YOUR_GNIP_PASSWORD');
+
+USAGE:
+$gptc->consume();
+
+
+In the GnipPowerTrack_Consume class, there are two functions that you may want to customize, or overwrite with your own:
+
+* write_log($type, $log_item)
+The default write_log, writes to a file, you may want to pipe this into your own logging system
+
+* enqueue($message)
+This function accepts $message, and writes it to whatever queue system you use.  The default just writes it out to the console.
