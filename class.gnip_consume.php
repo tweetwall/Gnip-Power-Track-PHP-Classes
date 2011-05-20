@@ -26,7 +26,10 @@ class GnipPowerTrack_Consume {
 		$this->password = $password;
 		
 		// automatically connect so we are ready to consume();
-		$this->connect();
+		while (!$this->connect()) {
+			$this->write_log('error', 'Error Connecting: Could not obtain connection URL');
+			sleep(5);
+		}
 		
 		// number of seconds to delay connecting to Gnip, increases by one each connect attempt. Resets to 0 on success. Should be left at 0.
 		$this->connect_delay = 0;
@@ -74,6 +77,8 @@ class GnipPowerTrack_Consume {
             }
         }
 		
+		if (!isset($header_arr['Location'])) return false;
+		
 		$this->write_log('info', 'Reconnect URL set to: ' . $header_arr['Location']);
 		
 		$location_tmp = parse_url($header_arr['Location']);
@@ -85,6 +90,7 @@ class GnipPowerTrack_Consume {
 		$this->gnip_powertrack_reconnect_cookie = implode('; ', $header_arr['Set-Cookie']);
 		
 		unset($location_tmp);
+		return true;
 	}
 
 	public function consume() {
@@ -173,7 +179,11 @@ class GnipPowerTrack_Consume {
 		$this->write_log('debug', $debug_headers);
 		
 		// If we are disconnected for any reason, reconnect now.
-		$this->connect(); // lets get a new connect location, just in case it was changed
+		// lets get a new connect location, just in case it was changed
+		while (!$this->connect()) {
+			$this->write_log('error', 'Error Connecting: Could not obtain connection URL');
+			sleep(5);
+		}
 		$this->consume();
 	}
 	
