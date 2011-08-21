@@ -65,17 +65,17 @@ class GnipPowerTrack_Consume {
 		curl_close($ch);
 		
 		$header_arr = array();
-        $header_lines = explode("\r\n", preg_replace('/\x0D\x0A[\x09\x20]+/', ' ', $header));
-        foreach($header_lines as $header_line) {
-            if( preg_match('/([^:]+): (.+)/m', $header_line, $match) ) {
-                $match[1] = preg_replace('/(?<=^|[\x09\x20\x2D])./e', 'strtoupper("\0")', strtolower(trim($match[1])));
-                if( isset($header_arr[$match[1]]) ) {
-                    $header_arr[$match[1]] = array($header_arr[$match[1]], $match[2]);
-                } else {
-                    $header_arr[$match[1]] = trim($match[2]);
-                }
-            }
-        }
+	        $header_lines = explode("\r\n", preg_replace('/\x0D\x0A[\x09\x20]+/', ' ', $header));
+	        foreach($header_lines as $header_line) {
+	            if( preg_match('/([^:]+): (.+)/m', $header_line, $match) ) {
+	                $match[1] = preg_replace('/(?<=^|[\x09\x20\x2D])./e', 'strtoupper("\0")', strtolower(trim($match[1])));
+	                if( isset($header_arr[$match[1]]) ) {
+	                    $header_arr[$match[1]] = array($header_arr[$match[1]], $match[2]);
+	                } else {
+	                    $header_arr[$match[1]] = trim($match[2]);
+	                }
+	            }
+	        }
 		
 		if (!isset($header_arr['Location'])) return false;
 		
@@ -114,36 +114,36 @@ class GnipPowerTrack_Consume {
 		$fp = fsockopen((($this->gnip_powertrack_reconnect_scheme=='https') ? 'ssl://' : '') . $this->gnip_powertrack_reconnect_host, $this->gnip_powertrack_reconnect_port, $errno, $errstr, 30);
 		if (!$fp) {
 			// there was an unkown connect error of some sort, report it, then sleep for 5 seconds and try again			
-		    $this->log(array('error'=>'Error Connecting: ' . $errstr . ' (' . $errno . ')'));
-		    sleep(5);
+			$this->log(array('error'=>'Error Connecting: ' . $errstr . ' (' . $errno . ')'));
+			sleep(5);
 		} else {
 			$this->write_log('info', 'Connected; Ready to Consume');
 			// set the response to empty
 			$response = '';
 						
-		    $out = "GET " . $this->gnip_powertrack_reconnect_path . " HTTP/1.0\r\n";
-		    $out .= "Host: " . $this->gnip_powertrack_reconnect_host . "\r\n";
-		    $out .= "Cookie: " . $this->gnip_powertrack_reconnect_cookie . "\r\n";
-		    $out .= "Connection: Close\r\n\r\n";
-		    fwrite($fp, $out);
+			$out = "GET " . $this->gnip_powertrack_reconnect_path . " HTTP/1.0\r\n";
+			$out .= "Host: " . $this->gnip_powertrack_reconnect_host . "\r\n";
+			$out .= "Cookie: " . $this->gnip_powertrack_reconnect_cookie . "\r\n";
+			$out .= "Connection: Close\r\n\r\n";
+			fwrite($fp, $out);
 		    
 			stream_set_blocking($fp, 1); 
 			stream_set_timeout($fp, ($this->reconnect_if_idle_for==0) ? (60*60*24) : ($this->reconnect_if_idle_for*60)); 
 			$stream_info = stream_get_meta_data($fp);
 			
-		    // save the headers so we can use them for debugging if we are forcefully disconnected.
-		    while(!feof($fp) && ($debug = fgets($fp)) != "\r\n" ) {
-		    	$debug_headers .= trim($debug) . '; ';
-		    }
+			// save the headers so we can use them for debugging if we are forcefully disconnected.
+			while(!feof($fp) && ($debug = fgets($fp)) != "\r\n" ) {
+				$debug_headers .= trim($debug) . '; ';
+			}
 		    
-		    stream_set_blocking($fp, 0); 
+			stream_set_blocking($fp, 1); 
 		    
-		    $this->write_log('info', 'Consuming');
-		    while ((!feof($fp)) AND (!$stream_info['timed_out'])) {
+			$this->write_log('info', 'Consuming');
+			while ((!feof($fp)) AND (!$stream_info['timed_out'])) {
 				$response .= fgets($fp, 16384);
 				if (($newline = strpos($response, "\r\n")) === FALSE) {
 					continue; // We need a newline
-		        }
+		        	}
 				
 				// only enqueue the responses that have data (e.g. ignore keep alive data)
 				$response = trim($response);
@@ -161,18 +161,18 @@ class GnipPowerTrack_Consume {
 				}
 				
 				// clean up the response variable for next time around.
-		        $response = '';
-		        
-		        // log our information (function takes care of if we actually need to log anything)
-		        $this->log();
-		        
-		        // this only gets triggered if during the log action, we determined that we were completely idle for X minutes. X = $this->reconnect_if_idle_for
-		        if ($this->disconnect == true) {
-		        	$this->disconnect = false;
-		        	break;
-		        }
-		    }
-		    fclose($fp);
+				$response = '';
+				
+				// log our information (function takes care of if we actually need to log anything)
+				$this->log();
+				
+				// this only gets triggered if during the log action, we determined that we were completely idle for X minutes. X = $this->reconnect_if_idle_for
+				if ($this->disconnect == true) {
+					$this->disconnect = false;
+					break;
+				}
+			}
+			fclose($fp);
 		}
 		
 		// log the last headers if we get here, just so we can see them if needed
