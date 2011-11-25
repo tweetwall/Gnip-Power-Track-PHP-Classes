@@ -179,7 +179,7 @@ class GnipPowerTrack_ManageRules {
 		$existing_rules_arr = $this->get();
 		
 		// if we are already at 0 rules, return true
-		if (count($existing_rules) == 0) return true;
+		if (count($existing_rules_arr) == 0) return true;
 		
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $this->gnip_powertrack_rules_location);
